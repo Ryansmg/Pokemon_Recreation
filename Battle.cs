@@ -8,7 +8,7 @@ public class Battle : MonoBehaviour
     public static Pokemon player;
     public static Pokemon enemy;
 
-    public static string code;
+    public static string code = "0881467";
     public static string[] availableCode =
     {
         "0881467" //피카츄
@@ -28,7 +28,9 @@ public class Battle : MonoBehaviour
     public static Skill usedSkill = skill_none;
     public static int skillEffect = effect_none;
     public bool damagePlayer;
+    public bool showCriticalMsg = false;
 
+    public const int effect_missed = -1;
     public const int effect_none = 0;
     public const int effect_small = 1;
     public const int effect_medium = 2;
@@ -48,7 +50,7 @@ public class Battle : MonoBehaviour
     public static int currentUIType;
     public static int currentAnimationType;
     public static int nextAnimationType;
-    public static bool doFastDamaging = false;
+    public static bool doFastDamaging = true;
 
     public const int UI_playAnimation = -2; //UI_none, plays animation
     public const int UI_none = -1; //없음
@@ -67,13 +69,13 @@ public class Battle : MonoBehaviour
 
     public GameObject blackPanel;
 
-    public static Skill heal = new(1000, -75, Skill.type_normal, "상처약");
-    public static Skill skill_none = new(0, 0, Skill.type_normal, "없음");
-    public static Skill hundKBolt = new(15, 90, Skill.type_electric, "10만볼트");
-    public static Skill ironTail = new(15, 100, Skill.type_iron, "아이언테일");
-    public static Skill fast = new(5, 80, Skill.type_normal, "신속");
-    public static Skill lightning = new(10, 110, Skill.type_electric, "번개");
-    public static Skill struggling = new(int.MaxValue, 10, Skill.type_normal, "발버둥");
+    public static Skill heal = new(1000, -75, Skill.type_normal, 100, "상처약");
+    public static Skill skill_none = new(0, 0, Skill.type_normal, 100, "없음");
+    public static Skill hundKBolt = new(15, 90, Skill.type_electric, 100, "10만볼트");
+    public static Skill ironTail = new(15, 100, Skill.type_iron, 75, "아이언테일");
+    public static Skill fast = new(5, 80, Skill.type_normal, 100, "신속");
+    public static Skill lightning = new(10, 110, Skill.type_electric, 70, "번개");
+    public static Skill struggling = new(int.MaxValue, 50, Skill.type_normal, 100, "발버둥");
 
     void Start()
     {
@@ -87,6 +89,7 @@ public class Battle : MonoBehaviour
         UIManager.msgPanel = messagePanel;
 
         player = new Pokemon("피카츄", Skill.type_electric, 350, 10, hundKBolt, lightning, ironTail, fast);
+        //player = new Pokemon("피카츄", Skill.type_electric, 350, 10, skill_none, skill_none, skill_none, skill_none);
         Pokemon pikachu = new("야생 피카츄", Skill.type_electric, 350, 10, hundKBolt, lightning, ironTail, fast);
         if (code.Equals(availableCode[0]))
         {
@@ -122,7 +125,7 @@ public class Battle : MonoBehaviour
 
                 case UI_introduction:
                     UIManager.msgType = UIManager.msg_default;
-                    UIManager.msg = "야생의 피카츄가 나타났다!";
+                    UIManager.msg = $"야생의 {enemy.name.Replace("야생 ","")}가 나타났다!";
                     UIManager.msgPanel.SetActive(true);
                     waiting = true;
                     nextUIType = UI_none;
@@ -142,19 +145,19 @@ public class Battle : MonoBehaviour
 
                     string pokemonName = isPlayerTurn ? player.name : enemy.name;
 
-                    if (isPlayerTurn) usedSkill = usedPlayerSkill;
+                    if (isPlayerTurn) { usedSkill = usedPlayerSkill; }
                     else
                     {
                         usedSkill = skill_none;
                         int ppLeft = 0;
-                        foreach(Skill skill in enemy.skill)
+                        foreach (Skill skill in enemy.skill)
                         {
                             ppLeft += skill.skillPP;
                         }
                         if (ppLeft <= 0) usedSkill = struggling;
                         else
                         {
-                            while(usedSkill.skillPP <= 0)
+                            while (usedSkill.skillPP <= 0)
                             {
                                 usedSkill = enemy.skill[Random.Range(0, 4)];
                             }
@@ -162,6 +165,7 @@ public class Battle : MonoBehaviour
                     }
 
                     usedSkill.skillPP--;
+                    struggling.skillPP = int.MaxValue;
 
                     UIManager.msg = $"{pokemonName}의 \n{usedSkill.skillName}!";
                     if(usedSkill.skillName.Equals("상처약")) UIManager.msg = $"{pokemonName}에게 상처약을 사용했다!";
@@ -173,12 +177,15 @@ public class Battle : MonoBehaviour
                     break;
 
                 case UI_skillResult:
+                    bool wasFirstTurn = false;
+                    bool wasPlayerTurn = isPlayerTurn;
                     if (player.hp <= 0) { nextUIType = UI_gameOver; }
-                    if (enemy.hp <= 0) { nextUIType = UI_win; }
+                    else if (enemy.hp <= 0) { nextUIType = UI_win; }
                     else
                     {
                         if (isFirstTurn)
                         {
+                            wasFirstTurn = true;
                             isFirstTurn = false;
                             isPlayerTurn = !isPlayerTurn;
                             nextUIType = UI_skillExplanation;
@@ -188,10 +195,29 @@ public class Battle : MonoBehaviour
                             nextUIType = UI_none;
                         }
                     }
-                    if (usedSkill.skillName.Equals("상처약")) waitingEnded = true;
+                    if (showCriticalMsg)
+                    {
+                        showCriticalMsg = false;
+                        UIManager.msg = "$Red$급소에 맞았다!";
+                        if (wasFirstTurn) isFirstTurn = true;
+                        isPlayerTurn = !isPlayerTurn;
+
+                        nextUIType = UI_skillResult;
+                        UIManager.msgPanel.SetActive(true);
+                        UIManager.msgType = UIManager.msg_default;
+                        waiting = true;
+                    }
+                    else if (usedSkill.skillName.Equals("상처약") || skillEffect == effect_medium) waitingEnded = true;
                     else
                     {
-                        UIManager.msg = "효과는 굉장했다!";
+                        UIManager.msg = skillEffect switch
+                        {
+                            effect_missed => $"{(wasPlayerTurn ? enemy.name : player.name)}에게는\n맞지 않았다!",
+                            effect_none => "효과가 없다...",
+                            effect_small => "효과가 별로인 듯하다...",
+                            effect_large => "효과가 굉장했다!",
+                            _ => "Error!"
+                        };
                         UIManager.msgPanel.SetActive(true);
                         UIManager.msgType = UIManager.msg_default;
                         waiting = true;
@@ -208,7 +234,7 @@ public class Battle : MonoBehaviour
                     waiting = true; break;
 
                 case UI_win:
-                    UIManager.msg = "승리했다!";
+                    UIManager.msg = $"{enemy.name}은(는) 쓰러졌다!";
                     UIManager.msgPanel.SetActive(true);
                     UIManager.msgType = UIManager.msg_default;
                     nextUIType = UI_playAnimation;
@@ -230,12 +256,15 @@ public class Battle : MonoBehaviour
                     currentAnimationType = nextAnimationType;
                     nextAnimationType = Ani_none;
                     userBlockPanel.SetActive(true);
+
                     if (currentAnimationType == Ani_fadeOutToSelectScene)
                         blackPanel.SetActive(true);
+
                     if (currentAnimationType == Ani_damage)
                     {
                         damagePlayer = true;
                     }
+
                     waiting = true;
                     break;
 
@@ -252,22 +281,68 @@ public class Battle : MonoBehaviour
         if (damagePlayer)
         {
             damagePlayer = false;
-            if (!isPlayerTurn)
-            {
-                player.hpChanged = true;
-                player.hp -= usedSkill.skillDamage;
-            }
-            else
-            {
-                if (usedSkill.skillName.Equals("상처약"))
+            if (Random.Range(1, 101) <= usedSkill.skillAccuracyPercent) {
+                // 명중 시
+                float damageChange = 1f;
+
+                Pokemon attacker, target;
+                if (isPlayerTurn) { attacker = player; target = enemy; }
+                else { attacker = enemy; target = player; }
+
+                if (attacker.type == usedSkill.skillType) damageChange *= 1.5f;
+
+                //TODO 상성 계산
+
+                if(target.type == Skill.type_electric)
+                {
+                    switch(usedSkill.skillType)
+                    {
+                        case Skill.type_iron:
+                        case Skill.type_electric:
+                            damageChange *= 0.5f;
+                            skillEffect = effect_small;
+                            break;
+                        default:
+                            skillEffect = effect_medium;
+                            break;
+                    }
+                }
+
+                //end
+
+                if (Random.Range(1, 101) <= 5 && !usedSkill.skillName.Equals("상처약")) { damageChange *= 2; showCriticalMsg = true; }
+                else showCriticalMsg = false;
+
+                if (!isPlayerTurn)
                 {
                     player.hpChanged = true;
-                    player.hp -= heal.skillDamage;
+                    player.hp -= Mathf.RoundToInt(usedSkill.skillDamage * damageChange);
+                }
+                else
+                {
+                    if (usedSkill.skillName.Equals("상처약"))
+                    {
+                        player.hpChanged = true;
+                        player.hp -= heal.skillDamage;
+                    }
+                    else
+                    {
+                        enemy.hpChanged = true;
+                        enemy.hp -= Mathf.RoundToInt(usedSkill.skillDamage * damageChange);
+                    }
+                }
+            } else
+            {
+                // 맞지 않았을 때
+
+                skillEffect = effect_missed;
+                if (!isPlayerTurn)
+                {
+                    player.hpChanged = true;
                 }
                 else
                 {
                     enemy.hpChanged = true;
-                    enemy.hp -= usedSkill.skillDamage;
                 }
             }
         }

@@ -42,6 +42,8 @@ public class UIManager : MonoBehaviour
     static bool playerDamageAnimation = false;
     static bool enemyDamageAnimation = false;
 
+    public static int fastDamageFrameCount = 20;
+
     public static float fadeOutTimer = 0;
 
     void Update()
@@ -176,12 +178,12 @@ public class UIManager : MonoBehaviour
         if (!setSpeed)
         {
             unitWidth = (currentWidth - destinationWidth) / damageFrameCount;
-            if (Battle.doFastDamaging && !Battle.waiting) { damageFrameCount = 40; }
+            if (Battle.doFastDamaging) { damageFrameCount = fastDamageFrameCount; }
             else damageFrameCount = 75;
         }
         else
         {
-            if (Battle.doFastDamaging && !Battle.waiting) { fixedUnitWidth = 3f; }
+            if (Battle.doFastDamaging) { fixedUnitWidth = 6f; }
             else fixedUnitWidth = 1.68f;
             if (currentWidth - destinationWidth > 0) unitWidth = fixedUnitWidth;
             else unitWidth = -1 * fixedUnitWidth;
@@ -194,10 +196,14 @@ public class UIManager : MonoBehaviour
 
     void SetMessage()
     {
+        if (msg.StartsWith("$Red$"))
+            gameObject.GetComponent<TMP_Text>().color = new Color(255 / 255, 105f / 255f, 105f / 255f);
+        else gameObject.GetComponent<TMP_Text>().color = Color.white;
+
         switch (msgType)
         {
             case msg_plain:
-                gameObject.GetComponent<TMP_Text>().text = msg;
+                gameObject.GetComponent<TMP_Text>().text = msg.Replace("$Red$", "");
                 break;
             case msg_default:
                 /*string s = "";
@@ -206,7 +212,7 @@ public class UIManager : MonoBehaviour
                 gameObject.GetComponent<TMP_Text>().text = s;
                 break;*/
             default:
-                gameObject.GetComponent<TMP_Text>().text = msg;
+                gameObject.GetComponent<TMP_Text>().text = msg.Replace("$Red$", "");
                 break;
         }
     }

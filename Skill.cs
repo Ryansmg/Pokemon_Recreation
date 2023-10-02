@@ -16,13 +16,15 @@ public class Skill
     public int skillDamage;
     public int skillType;
     public string skillName;
+    public int skillAccuracyPercent;
 
-    public Skill(int pp, int damage, int type, string name)
+    public Skill(int pp, int damage, int type, int accuracy, string name)
     {
         skillPP = pp;
         skillDamage = damage;
         skillType = type;
         skillName = name;
         skillMaxPP = pp;
+        skillAccuracyPercent = accuracy;
     }
 }
