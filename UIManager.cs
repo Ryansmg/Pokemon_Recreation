@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     public string type;
+    public int skillNumber;
 
     public static GameObject msgPanel;
     public static string msg = "";
@@ -45,12 +46,29 @@ public class UIManager : MonoBehaviour
     public static int fastDamageFrameCount = 20;
 
     public static float fadeOutTimer = 0;
+    public static float fadeInTimer = 0;
 
     void Update()
     {
 
         switch (type.ToLower())
         {
+            case "skillbutton":
+                if (Battle.player.skill[skillNumber].skillPP <= 0) gameObject.GetComponent<Button>().interactable = false;
+                else gameObject.GetComponent<Button>().interactable = true;
+                break;
+            case "skilltype":
+                string type = skillNumber switch
+                {
+                    0 => "전기",
+                    1 => "전기",
+                    2 => "강철",
+                    3 => "노말",
+                    _ => "???"
+                };
+                gameObject.GetComponent<TMP_Text>().text = $"<{type}>\nPP: {Battle.player.skill[skillNumber].skillPP}/{Battle.player.skill[skillNumber].skillMaxPP}";
+                
+                break;
             case "msgpanel":
                 SetMessage();
                 break;
@@ -160,6 +178,27 @@ public class UIManager : MonoBehaviour
                         Battle.currentAnimationType = Battle.Ani_none;
                         Battle.waitingEnded = true;
                         SceneManager.LoadScene("SelectScene");
+                    }
+                }
+                if (Battle.currentAnimationType == Battle.Ani_fadeIn)
+                {
+                    if (fadeInTimer <= 0)
+                    {
+                        /* Animation start */
+                        gameObject.SetActive(true);
+                        fadeInTimer = 2f + Time.deltaTime;
+                    }
+
+                    fadeInTimer -= Time.deltaTime;
+                    gameObject.transform.GetComponent<Image>().color = new Color(0, 0, 0, fadeInTimer / 1.5f);
+
+                    if (fadeInTimer <= 0)
+                    {
+                        /* Animation end */
+                        Battle.currentAnimationType = Battle.Ani_none;
+                        Battle.waitingEnded = true;
+                        gameObject.SetActive(false);
+                        Battle.nextUIType = Battle.UI_introduction;
                     }
                 }
                 break;

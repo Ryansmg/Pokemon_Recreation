@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Skill
 {
+    static List<Skill> allSkills = new();
 
     public const int type_normal = -1;
     public const int type_fire = 0;
@@ -26,5 +27,14 @@ public class Skill
         skillName = name;
         skillMaxPP = pp;
         skillAccuracyPercent = accuracy;
+        allSkills.Add(this);
+    }
+
+    public static void ResetSkills()
+    {
+        foreach(Skill skill in allSkills)
+        {
+            skill.skillPP = skill.skillMaxPP;
+        }
     }
 }

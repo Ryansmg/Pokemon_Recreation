@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Battle : MonoBehaviour
@@ -66,16 +67,23 @@ public class Battle : MonoBehaviour
     public const int Ani_none = -99;
     public const int Ani_damage = 100;
     public const int Ani_fadeOutToSelectScene = 101;
+    public const int Ani_fadeIn = 102;
 
     public GameObject blackPanel;
 
+    public static Skill hundKBoltPlayer = new(15, 90, Skill.type_electric, 100, "10만볼트");
+    public static Skill ironTailPlayer = new(15, 100, Skill.type_iron, 75, "아이언테일");
+    public static Skill quickAttackPlayer = new(30, 60, Skill.type_normal, 100, "전광석화");
+    public static Skill lightningPlayer = new(10, 110, Skill.type_electric, 70, "번개");
+
     public static Skill heal = new(1000, -75, Skill.type_normal, 100, "상처약");
     public static Skill skill_none = new(0, 0, Skill.type_normal, 100, "없음");
+    public static Skill struggling = new(int.MaxValue, 50, Skill.type_normal, 100, "발버둥");
+
     public static Skill hundKBolt = new(15, 90, Skill.type_electric, 100, "10만볼트");
     public static Skill ironTail = new(15, 100, Skill.type_iron, 75, "아이언테일");
-    public static Skill fast = new(5, 80, Skill.type_normal, 100, "신속");
+    public static Skill quickAttack = new(30, 60, Skill.type_normal, 100, "전광석화");
     public static Skill lightning = new(10, 110, Skill.type_electric, 70, "번개");
-    public static Skill struggling = new(int.MaxValue, 50, Skill.type_normal, 100, "발버둥");
 
     void Start()
     {
@@ -83,14 +91,16 @@ public class Battle : MonoBehaviour
         waitingEnded = true;
         currentUIType = UI_none;
         currentAnimationType = Ani_none;
-        nextUIType = UI_introduction;
-        nextAnimationType = Ani_none;
+        nextUIType = UI_playAnimation;
+        nextAnimationType = Ani_fadeIn;
+
+        Skill.ResetSkills();
 
         UIManager.msgPanel = messagePanel;
 
-        player = new Pokemon("피카츄", Skill.type_electric, 350, 10, hundKBolt, lightning, ironTail, fast);
+        player = new Pokemon("피카츄", Skill.type_electric, 350, 10, hundKBoltPlayer, lightningPlayer, ironTailPlayer, quickAttackPlayer);
         //player = new Pokemon("피카츄", Skill.type_electric, 350, 10, skill_none, skill_none, skill_none, skill_none);
-        Pokemon pikachu = new("야생 피카츄", Skill.type_electric, 350, 10, hundKBolt, lightning, ironTail, fast);
+        Pokemon pikachu = new("야생 피카츄", Skill.type_electric, 350, 10, hundKBolt, lightning, ironTail, quickAttack);
         if (code.Equals(availableCode[0]))
         {
             enemy = pikachu;
@@ -111,7 +121,7 @@ public class Battle : MonoBehaviour
 
         if (waitingEnded)
         {
-            Debug.Log($"UIType {currentUIType}->{nextUIType}");
+            //Debug.Log($"UIType {currentUIType}->{nextUIType}");
             waiting = false;
             waitingEnded = false;
             currentUIType = nextUIType;
@@ -120,6 +130,7 @@ public class Battle : MonoBehaviour
             switch (currentUIType)
             {
                 case UI_none:
+                    UIManager.msgPanel.GetComponentInChildren<TMP_Text>().text = "";
                     UIManager.msgPanel.SetActive(false);
                     goto endOfUIChange;
 
@@ -127,6 +138,7 @@ public class Battle : MonoBehaviour
                     UIManager.msgType = UIManager.msg_default;
                     UIManager.msg = $"야생의 {enemy.name.Replace("야생 ","")}가 나타났다!";
                     UIManager.msgPanel.SetActive(true);
+                    blackPanel.SetActive(false);
                     waiting = true;
                     nextUIType = UI_none;
                     goto endOfUIChange;
@@ -134,7 +146,7 @@ public class Battle : MonoBehaviour
                 case UI_skillUsed:
                     if (player.speed >= enemy.speed) isPlayerTurn = true;
                     else isPlayerTurn = false;
-                    if (usedPlayerSkill.skillName.Equals("상처약")) isPlayerTurn = true;
+                    if (usedPlayerSkill.skillName.Equals("상처약") || usedPlayerSkill.skillName.Equals("전광석화")) isPlayerTurn = true;
                     isFirstTurn = true;
                     nextUIType = UI_skillExplanation;
                     waitingEnded = true;
@@ -251,13 +263,14 @@ public class Battle : MonoBehaviour
                     waiting = true; break;
 
                 case UI_playAnimation:
+                    UIManager.msgPanel.GetComponentInChildren<TMP_Text>().text = "";
                     UIManager.msgPanel.SetActive(false);
                     nextUIType = UI_none;
                     currentAnimationType = nextAnimationType;
                     nextAnimationType = Ani_none;
                     userBlockPanel.SetActive(true);
 
-                    if (currentAnimationType == Ani_fadeOutToSelectScene)
+                    if (currentAnimationType == Ani_fadeOutToSelectScene || currentAnimationType == Ani_fadeIn)
                         blackPanel.SetActive(true);
 
                     if (currentAnimationType == Ani_damage)
@@ -269,6 +282,7 @@ public class Battle : MonoBehaviour
                     break;
 
                 default:
+                    UIManager.msgPanel.GetComponentInChildren<TMP_Text>().text = "";
                     UIManager.msgPanel.SetActive(false);
                     currentUIType = UI_none;
                     nextUIType = UI_none;

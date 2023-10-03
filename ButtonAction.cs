@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class ButtonAction : MonoBehaviour
 {
     public GameObject attackSelection;
-    public void AttackTest()
+    public TMP_Text attackInfoNonStatic;
+    public GameObject attackInfoPanelNS;
+    public static TMP_Text attackInfo;
+    public static GameObject attackInfoPanel;
+    void Start()
     {
-        Battle.nextUIType = Battle.UI_skillUsed;
-        Battle.usedPlayerSkill = Battle.player.skill[0];
-        Battle.waitingEnded = true;
+        attackInfo = attackInfoNonStatic;
+        attackInfoPanel = attackInfoPanelNS;
     }
 
     public void SelectAttack()
@@ -28,12 +32,17 @@ public class ButtonAction : MonoBehaviour
         else
         {
             attackSelection.SetActive(true);
+            attackInfoPanel.SetActive(true);
         }
     }
 
     public void Attack(int n)
     {
+        if (Battle.player.skill[n].skillPP <= 0) return;
+
         attackSelection.SetActive(false);
+        attackInfoPanel.SetActive(false);
+        attackInfo.text = "";
         Battle.nextUIType = Battle.UI_skillUsed;
         Battle.usedPlayerSkill = Battle.player.skill[n];
         Battle.waitingEnded = true;
