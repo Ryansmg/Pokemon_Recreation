@@ -53,6 +53,25 @@ public class UIManager : MonoBehaviour
 
         switch (type.ToLower())
         {
+            case "healbutton":
+                if (Battle.heal.skillPP <= 0) gameObject.GetComponent<Button>().interactable = false;
+                else gameObject.GetComponent<Button>().interactable = true;
+                break;
+
+            case "heal2button":
+                if (Battle.heal2.skillPP <= 0) gameObject.GetComponent<Button>().interactable = false;
+                else gameObject.GetComponent<Button>().interactable = true;
+                break;
+
+            case "healpp":
+                gameObject.GetComponent<TMP_Text>().text = skillNumber switch
+                {
+                    0 => $"개수: {Battle.heal.skillPP}/{Battle.heal.skillMaxPP}",
+                    1 => $"개수: {Battle.heal2.skillPP}/{Battle.heal2.skillMaxPP}",
+                    _ => "Error"
+                };
+                break;
+
             case "skillbutton":
                 if (Battle.player.skill[skillNumber].skillPP <= 0) gameObject.GetComponent<Button>().interactable = false;
                 else gameObject.GetComponent<Button>().interactable = true;
@@ -60,21 +79,29 @@ public class UIManager : MonoBehaviour
             case "skilltype":
                 string type = skillNumber switch
                 {
-                    0 => "전기",
-                    1 => "전기",
-                    2 => "강철",
-                    3 => "노말",
+                    0 => "물",
+                    1 => "노말",
+                    2 => "물",
+                    3 => "악",
                     _ => "???"
                 };
                 gameObject.GetComponent<TMP_Text>().text = $"<{type}>\nPP: {Battle.player.skill[skillNumber].skillPP}/{Battle.player.skill[skillNumber].skillMaxPP}";
                 
                 break;
+
             case "msgpanel":
                 SetMessage();
                 break;
 
             case "enemyname":
-                gameObject.GetComponent<TMP_Text>().text = Battle.enemy.name.Replace("야생 ", "");
+                string typeStr = Battle.enemy.type switch
+                {
+                    Skill.type_electric => "전기",
+                    Skill.type_fire => "불꽃",
+                    Skill.type_dragon => "드래곤",
+                    _ => "???"
+                };
+                gameObject.GetComponent<TMP_Text>().text = $"{Battle.enemy.name.Replace("야생 ", "")} <{typeStr}>";
                 break;
 
             case "playerhp":
@@ -222,7 +249,7 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            if (Battle.doFastDamaging) { fixedUnitWidth = 6f; }
+            if (Battle.doFastDamaging) { fixedUnitWidth = 10f; }
             else fixedUnitWidth = 1.68f;
             if (currentWidth - destinationWidth > 0) unitWidth = fixedUnitWidth;
             else unitWidth = -1 * fixedUnitWidth;
