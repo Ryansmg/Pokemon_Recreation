@@ -250,7 +250,7 @@ public class UIManager : MonoBehaviour
         else
         {
             if (Battle.doFastDamaging) { fixedUnitWidth = 10f; }
-            else fixedUnitWidth = 1.68f;
+            else fixedUnitWidth = 5f;
             if (currentWidth - destinationWidth > 0) unitWidth = fixedUnitWidth;
             else unitWidth = -1 * fixedUnitWidth;
             damageFrameCount = (int)Mathf.Ceil((currentWidth - destinationWidth) / unitWidth);

@@ -17,6 +17,8 @@ public class Battle : MonoBehaviour
     public GameObject messagePanel;
     public GameObject userBlockPanel;
 
+    public static int targetFrameRate = 120;
+
     //battle management
     public static bool isPlayerTurn;
     public static bool isFirstTurn;
@@ -47,7 +49,7 @@ public class Battle : MonoBehaviour
     public static int currentUIType;
     public static int currentAnimationType;
     public static int nextAnimationType;
-    public static bool doFastDamaging = true;
+    public static bool doFastDamaging = false;
 
     public const int UI_playAnimation = -2; //UI_none, plays animation
     public const int UI_none = -1; //¾øÀ½
@@ -106,7 +108,7 @@ public class Battle : MonoBehaviour
     public static Skill test2 = new(1000, 1000, Skill.type_normal, 0, "\n");
     void Start()
     {
-        Application.targetFrameRate = 60;
+        Application.targetFrameRate = targetFrameRate;
 
         waiting = false;
         waitingEnded = true;

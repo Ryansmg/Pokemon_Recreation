@@ -17,11 +17,14 @@ public class StartGame : MonoBehaviour
 
     void Start()
     {
-        Application.targetFrameRate = 60;
+        Application.targetFrameRate = Battle.targetFrameRate;
         try
         {
             if (!preCode.Equals("placeholder")) input.GetComponent<TMP_InputField>().text = preCode;
         } catch (UnassignedReferenceException) { }
+
+        if (Battle.doFastDamaging) GameObject.Find("FastButton").GetComponentInChildren<TMP_Text>().text = "배틀 속도 : 빠름";
+        else GameObject.Find("FastButton").GetComponentInChildren<TMP_Text>().text = "배틀 속도 : 보통";
     }
     
     public void Startgame()

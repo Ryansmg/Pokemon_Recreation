@@ -19,6 +19,19 @@ public class ButtonAction : MonoBehaviour
         attackInfoPanel = attackInfoPanelNS;
     }
 
+    public void ChangeBattleSpeed()
+    {
+        if(Battle.doFastDamaging)
+        {
+            Battle.doFastDamaging = false;
+            gameObject.GetComponentInChildren<TMP_Text>().text = "배틀 속도 : 보통";
+        } else
+        {
+            Battle.doFastDamaging = true;
+            gameObject.GetComponentInChildren<TMP_Text>().text = "배틀 속도 : 빠름";
+        }
+    }
+
     public void SelectAttack()
     {
         int ppLeft = 0;
